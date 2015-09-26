@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
-using UnityEngine.EventSystems;
 
-public class SceneNavigation : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
+public class SceneNavigation : MonoBehaviour
 {
-    private const float NavigationScale = 0.001f;
+    private const float NavigationScale = 0.1f;
     private const float VelocityThreshold = 0.001f;
 
     public CameraPath CameraPath;
@@ -11,18 +10,36 @@ public class SceneNavigation : MonoBehaviour, IPointerDownHandler, IPointerUpHan
     public float NavigationMaxSpeed = 20f;
     public float Friction = 0.9f;
 
-    private Vector2 _lastInput;
+    private Vector2 _pointerPosition;
+    private bool _pointerDown;
     private float _velocity;
-    private bool _swiping;
 
     void Update()
     {
-        if (_swiping)
+        ProcessInput();
+        UpdateCameraPath();     
+    }
+
+    private void ProcessInput()
+    {
+        var pointerPosition = GetPointerPosition();
+        var pointerDown = GetPointerDown();
+
+        if (pointerDown && _pointerDown)
         {
-            Vector2 input = Input.mousePosition;
-            Navigate(input - _lastInput);
-            _lastInput = input;
+            SetVelocity(pointerPosition - _pointerPosition);
         }
+        else if (pointerDown && !_pointerDown)
+        {
+            SetVelocity(Vector2.zero);
+        }
+
+        _pointerPosition = pointerPosition;
+        _pointerDown = pointerDown;
+    }
+
+    private void UpdateCameraPath()
+    {
         if (Mathf.Abs(_velocity) >= VelocityThreshold)
         {
             CameraPath.Time -= _velocity;
@@ -30,18 +47,17 @@ public class SceneNavigation : MonoBehaviour, IPointerDownHandler, IPointerUpHan
         }
     }
 
-    public void OnPointerDown(PointerEventData eventData)
+    private Vector2 GetPointerPosition()
     {
-        _swiping = true;
-        _lastInput = Input.mousePosition;
+        return Input.mousePosition/Screen.dpi;
     }
 
-    public void OnPointerUp(PointerEventData eventData)
+    private bool GetPointerDown()
     {
-        _swiping = false;
+        return Input.touchCount > 0 || Input.GetMouseButton(0);
     }
 
-    private void Navigate(Vector2 delta)
+    private void SetVelocity(Vector2 delta)
     {
         _velocity = Mathf.Lerp(_velocity,Mathf.Clamp(delta.x * NavigationScale * NavigationSpeed, -NavigationMaxSpeed * NavigationScale, NavigationMaxSpeed * NavigationScale),0.8f);
     }
