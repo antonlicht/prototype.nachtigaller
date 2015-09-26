@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class SzeneNavigation : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
+public class SceneNavigation : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
     private const float NavigationScale = 0.001f;
     private const float VelocityThreshold = 0.001f;
